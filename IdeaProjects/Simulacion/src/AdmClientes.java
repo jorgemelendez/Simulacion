@@ -4,17 +4,18 @@ public class AdmClientes extends Modulo{
 
     private double tMax;
 
-    public AdmClientes(AdmProcesos sigModulo, int maxServers, EstadisticasSimulacion estadisticasSimulacion, PriorityQueue<Evento> listaEventos, double tMax){
-        super( sigModulo, maxServers, estadisticasSimulacion, listaEventos);
+    public AdmClientes(/*AdmProcesos sigModulo, */int maxServers, EstadisticasSimulacion estadisticasSimulacion, PriorityQueue<Evento> listaEventos, double tMax){
+        super( /*sigModulo, */maxServers, estadisticasSimulacion, listaEventos);
         this.tMax = tMax;
     }
 
     public void generarLlegada( Consulta consulta, double tiempo ){
-        Evento nuevo = new Evento( TipoEvento.LlegadaModCliente, tiempo, consulta );
+        Evento nuevo = new Evento( TipoEvento.LlegadaAdmCliente, tiempo, consulta );
         this.listaEventos.add( nuevo );
     }
 
     public void procesarLlegada( Consulta consulta, double tiempo ){
+        consulta.setModuloActual( 1 );
         if( this.maxServers - this.servidoresOcupados > 0 ){ //Hay servidores libres?
             this.servidoresOcupados++;
             this.sigModulo.generarLlegada( consulta, tiempo );
@@ -22,16 +23,16 @@ public class AdmClientes extends Modulo{
         }else{
             this.estadisticasSimulacion.addConsultaRechazado( consulta ); //VER SI LO METEMOS EN CLIENTES AUNQUE
         }
-        double tInicial = tiempo + this.valoresAleatorios.generarTiempoExponencial(30/(double)60);
+        double tInicial = tiempo + this.generadorDeValoresAleatorios.generarValorExponencial(30/(double)60);
         double timeOut =  tInicial + this.tMax;
-        TipoConsulta tipoConsulta = this.valoresAleatorios.generarTipoConsulta();
+        TipoConsulta tipoConsulta = this.generadorDeValoresAleatorios.generarValorTipoConsulta();
         this.generarLlegada( new Consulta( tInicial, timeOut, tipoConsulta, this.estadisticasSimulacion ), tInicial );
     }
 
     /*el tiempo debe ser el tiempo actual del reloj +  b/64*/
     public void generarSalida( Consulta consulta, double tiempo ){
         consulta.setTFinalReal( tiempo );//CREO QUE NO ES NECESARIO ESTARLO ACTUALIZANDO
-        Evento nuevo = new Evento( TipoEvento.SalidaModCliente, tiempo, consulta );
+        Evento nuevo = new Evento( TipoEvento.SalidaAdmCliente, tiempo, consulta );
         this.listaEventos.add( nuevo );
     }
 
