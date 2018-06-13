@@ -33,10 +33,6 @@ public class Evento implements Comparable<Evento>{
             return -1;
         }else if( otro.getTipoEvento() == TipoEvento.SalidaSubModuloEjecucion ){
             return 1;
-        }else if( this.tipoEvento == TipoEvento.SalidaAdmCliente ){
-            return -1;
-        }else if( otro.getTipoEvento() == TipoEvento.SalidaAdmCliente ){
-            return 1;
         }else if( this.tipoEvento == TipoEvento.SalidaAdmProcesos ){
             return -1;
         }else if( otro.getTipoEvento() == TipoEvento.SalidaAdmProcesos ){
@@ -48,6 +44,14 @@ public class Evento implements Comparable<Evento>{
         }else if( this.tipoEvento == TipoEvento.SalidaAdmTransaccionesAlmacenamiento ){
             return -1;
         }else if( otro.getTipoEvento() == TipoEvento.SalidaAdmTransaccionesAlmacenamiento ){
+            return 1;
+        }else if( this.tipoEvento == TipoEvento.SalidaAdmCliente ){
+            return -1;
+        }else if( otro.getTipoEvento() == TipoEvento.SalidaAdmCliente ){//Este va de ultimo porque en caso de timeout se necesita que salga de los otros primero
+            return 1;
+        }else if( this.tipoEvento == TipoEvento.SalidaTimeOut ){//Este va despues de las salidas por si en el mismo tiempo hay time out pero tambien salia normal, entonces para que salga normal y no por time out
+            return -1;
+        }else if( otro.getTipoEvento() == TipoEvento.SalidaTimeOut ){
             return 1;
         }else if( this.tipoEvento == TipoEvento.LlegadaSubModuloEjecucion ){
             return -1;

@@ -8,6 +8,7 @@ public class AdmTransaccionesAlmacenamiento extends Modulo {
         super( /*sigModulo, */maxServers, estadisticasSimulacion, listaEventos);
         this.cola = new PriorityQueue<Consulta>( 11,new ComparadorColaAdmTransaccionesAlmacenamiento() );//ESTA ES LA DE PRIORIDAD DISTINTA
         this.ddlSiendoAtendido = false;
+        this.numeroModulo = 4;
     }
 
     public void generarLlegada( Consulta consulta, double tiempo ){
@@ -16,7 +17,7 @@ public class AdmTransaccionesAlmacenamiento extends Modulo {
     }
 
     public void procesarLlegada( Consulta consulta, double tiempo ){
-        consulta.setModuloActual( 4 );
+        consulta.setModuloActual( this );
         consulta.setBloques( ( !consulta.getReadOnly() )? 0
                                 : (consulta.getTipoConsulta() == TipoConsulta.SELECT )? 1
                                 : (int)this.generadorDeValoresAleatorios.generarValorUniforme(1,64) );
@@ -34,6 +35,8 @@ public class AdmTransaccionesAlmacenamiento extends Modulo {
                 this.generarSalida(consulta, tiempoSalida);
                 if ( tiempoSalida >= consulta.getTimeOut() ) {
                     //VER COMO LE VAMOS A INFORMAR A ADMCLIENTES QUE SAQUE LA CONSULTAS
+                    this.moduloConexion.generarSalida( consulta,tiempoSalida );
+                    consulta.setSalioTimeOut(true);
                 } else {
                     this.sigModulo.generarLlegada(consulta, tiempoSalida);
                 }
@@ -49,6 +52,8 @@ public class AdmTransaccionesAlmacenamiento extends Modulo {
                 this.generarSalida(consulta, tiempoSalida);
                 if (tiempoSalida >= consulta.getTimeOut()) {
                     //VER COMO LE VAMOS A INFORMAR A ADMCLIENTES QUE SAQUE LA CONSULTAS
+                    this.moduloConexion.generarSalida( consulta,tiempoSalida );
+                    consulta.setSalioTimeOut(true);
                 } else {
                     this.sigModulo.generarLlegada(consulta, tiempoSalida);
                 }
@@ -63,7 +68,7 @@ public class AdmTransaccionesAlmacenamiento extends Modulo {
     }
 
     public void generarSalida( Consulta consulta, double tiempo ){
-        consulta.setTFinalReal( tiempo );//CREO QUE NO ES NECESARIO ESTARLO ACTUALIZANDO
+        //consulta.setTFinalReal( tiempo );//CREO QUE NO ES NECESARIO ESTARLO ACTUALIZANDO
         Evento nuevo = new Evento( TipoEvento.SalidaAdmTransaccionesAlmacenamiento, tiempo, consulta );
         this.listaEventos.add( nuevo );
     }
@@ -73,7 +78,7 @@ public class AdmTransaccionesAlmacenamiento extends Modulo {
             this.ddlSiendoAtendido = false;
             this.servidoresOcupados--;
             if( this.largoCola > 0 ){
-                while( servidoresOcupados <= this.maxServers && this.cola.peek().getTipoConsulta() != TipoConsulta.DDL ){
+                while( this.largoCola != 0 && servidoresOcupados <= this.maxServers && this.cola.peek().getTipoConsulta() != TipoConsulta.DDL ){
                     this.largoCola--;
                     this.servidoresOcupados++;
                     Consulta nueva = this.cola.poll();
@@ -84,6 +89,8 @@ public class AdmTransaccionesAlmacenamiento extends Modulo {
                     this.generarSalida(nueva, tiempoSalidaNueva);
                     if (tiempoSalidaNueva >= consulta.getTimeOut()) {
                         //VER COMO LE VAMOS A INFORMAR A ADMCLIENTES QUE SAQUE LA CONSULTAS
+                        this.moduloConexion.generarSalida( consulta,tiempoSalidaNueva );
+                        consulta.setSalioTimeOut(true);
                     } else {
                         this.sigModulo.generarLlegada(consulta, tiempoSalidaNueva);
                     }
@@ -103,6 +110,8 @@ public class AdmTransaccionesAlmacenamiento extends Modulo {
                 this.generarSalida(nueva, tiempoSalidaNuevaConsulta);
                 if (tiempoSalidaNuevaConsulta >= consulta.getTimeOut()) {
                     //VER COMO LE VAMOS A INFORMAR A ADMCLIENTES QUE SAQUE LA CONSULTAS
+                    this.moduloConexion.generarSalida( consulta,tiempoSalidaNuevaConsulta );
+                    consulta.setSalioTimeOut(true);
                 } else {
                     this.sigModulo.generarLlegada(consulta, tiempoSalidaNuevaConsulta);
                 }
@@ -113,11 +122,6 @@ public class AdmTransaccionesAlmacenamiento extends Modulo {
             consulta.setTiempoModulo(false, 4, tiempo - consulta.getTiempoModulo(4));
             //VER SI NO LE FALTA ALGO MAS
         }
-    }
-
-    public void matarTimeOut( double tiempo ){
-        //VER COMO LO PENSO ARAYA, CREO QUE ES VERIFICANDO EN GENERAR SALIDA QUE LE TIEMPO GENERADO NO SEA MAYOR QUE EL TIME OUT
-        // OJO QUE SI SE HACE TIME OUT DEBO PONER ESE TIEMPO COMO TFinalReal DE LA CONSULTA
     }
 
 }

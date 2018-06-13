@@ -5,6 +5,7 @@ public class AdmProcesos extends Modulo{
     public AdmProcesos(/*AdmProcesamiento sigModulo, */int maxServers, EstadisticasSimulacion estadisticasSimulacion, PriorityQueue<Evento> listaEventos){
         super( /*sigModulo, */maxServers, estadisticasSimulacion, listaEventos);
         this.cola = new PriorityQueue<Consulta>();
+        this.numeroModulo = 2;
     }
 
     public void generarLlegada( Consulta consulta, double tiempo ){
@@ -13,15 +14,17 @@ public class AdmProcesos extends Modulo{
     }
 
     public void procesarLlegada( Consulta consulta, double tiempo ){
-        consulta.setModuloActual( 2 );
+        consulta.setModuloActual( this );
         if( this.maxServers - this.servidoresOcupados > 0 ){ //Hay servidores libres?
             this.servidoresOcupados++;
             double tiempoSalida = tiempo + this.generadorDeValoresAleatorios.generarValorNormal(1.0,0.01);
             this.generarSalida( consulta, tiempoSalida );
             if( tiempoSalida >= consulta.getTimeOut()){
                 //VER COMO LE VAMOS A INFORMAR A ADMCLIENTES QUE SAQUE LA CONSULTAS
+                this.moduloConexion.generarSalida( consulta,tiempoSalida );
+                consulta.setSalioTimeOut(true);
             }else{
-                this.sigModulo.generarLlegada(consulta, tiempoSalida);
+                this.sigModulo.generarLlegada( consulta, tiempoSalida );
             }
             consulta.setTiempoModulo(true, 2 , tiempo );
             consulta.setTiempoCola(true,2,0);
@@ -33,7 +36,7 @@ public class AdmProcesos extends Modulo{
     }
 
     public void generarSalida( Consulta consulta, double tiempo ){
-        consulta.setTFinalReal( tiempo );//CREO QUE NO ES NECESARIO ESTARLO ACTUALIZANDO
+        //consulta.setTFinalReal( tiempo );//CREO QUE NO ES NECESARIO ESTARLO ACTUALIZANDO
         Evento nuevo = new Evento( TipoEvento.SalidaAdmProcesos, tiempo, consulta );
         this.listaEventos.add( nuevo );
     }
@@ -47,6 +50,8 @@ public class AdmProcesos extends Modulo{
             this.generarSalida( nueva, tiempoSalidaNuevaConsulta );
             if( tiempoSalidaNuevaConsulta >= consulta.getTimeOut()){
                 //VER COMO LE VAMOS A INFORMAR A ADMCLIENTES QUE SAQUE LA CONSULTAS
+                this.moduloConexion.generarSalida( consulta,tiempoSalidaNuevaConsulta );
+                consulta.setSalioTimeOut(true);
             }else{
                 this.sigModulo.generarLlegada(consulta, tiempoSalidaNuevaConsulta);
             }
@@ -57,9 +62,5 @@ public class AdmProcesos extends Modulo{
         consulta.setTiempoModulo(false, 2 , tiempo - consulta.getTiempoModulo(2) );
         //VER SI NO LE FALTA ALGO MAS
     }
-
-    public void matarTimeOut( double tiempo ){
-        //VER COMO LO PENSO ARAYA, CREO QUE ES VERIFICANDO EN GENERAR SALIDA QUE LE TIEMPO GENERADO NO SEA MAYOR QUE EL TIME OUT
-        // OJO QUE SI SE HACE TIME OUT DEBO PONER ESE TIEMPO COMO TFinalReal DE LA CONSULTA
-    }
+    
 }

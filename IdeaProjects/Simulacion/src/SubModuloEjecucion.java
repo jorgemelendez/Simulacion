@@ -5,6 +5,7 @@ public class SubModuloEjecucion extends Modulo{
     public SubModuloEjecucion(/*AdmClientes sigModulo, */int maxServers, EstadisticasSimulacion estadisticasSimulacion, PriorityQueue<Evento> listaEventos){
         super( /*sigModulo, */maxServers, estadisticasSimulacion, listaEventos);
         this.cola = new PriorityQueue<Consulta>();
+        this.numeroModulo = 5;
     }
 
     public void generarLlegada( Consulta consulta, double tiempo ){
@@ -13,7 +14,7 @@ public class SubModuloEjecucion extends Modulo{
     }
 
     public void procesarLlegada( Consulta consulta, double tiempo ){
-        consulta.setModuloActual( 5 );
+        consulta.setModuloActual( this );
         if( this.maxServers - this.servidoresOcupados > 0 ){ //Hay servidores libres?
             this.servidoresOcupados++;
             double tiempoSalida = tiempo +
@@ -24,8 +25,10 @@ public class SubModuloEjecucion extends Modulo{
             this.generarSalida( consulta, tiempoSalida );
 
             double tiempoSalidaSigModulo = tiempoSalida + consulta.getBloques()/(double)64 ;
-            if( tiempoSalidaSigModulo >= consulta.getTimeOut()){
+            if( tiempoSalidaSigModulo >= consulta.getTimeOut()){//CREO QUE ESTE IF SE PUEDE QUITAR PORQUE AL FINAL AMBOS CASOS HACEN LO MISMO
                 //VER COMO LE VAMOS A INFORMAR A ADMCLIENTES QUE SAQUE LA CONSULTAS
+                this.moduloConexion.generarSalida( consulta,tiempoSalidaSigModulo );
+                consulta.setSalioTimeOut(true);
             }else{
                 this.sigModulo.generarSalida(consulta, tiempoSalidaSigModulo);
             }
@@ -39,7 +42,7 @@ public class SubModuloEjecucion extends Modulo{
     }
 
     public void generarSalida( Consulta consulta, double tiempo ){
-        consulta.setTFinalReal( tiempo );//CREO QUE NO ES NECESARIO ESTARLO ACTUALIZANDO
+        //consulta.setTFinalReal( tiempo );//CREO QUE NO ES NECESARIO ESTARLO ACTUALIZANDO
         Evento nuevo = new Evento( TipoEvento.SalidaSubModuloEjecucion, tiempo, consulta );
         this.listaEventos.add( nuevo );
     }
@@ -58,8 +61,10 @@ public class SubModuloEjecucion extends Modulo{
             this.generarSalida( nueva, tiempoSalidaNuevaConsulta );
 
             double tiempoSalidaSigModulo = tiempoSalidaNuevaConsulta + consulta.getBloques()/(double)64 ;
-            if( tiempoSalidaSigModulo >= consulta.getTimeOut()){
+            if( tiempoSalidaSigModulo >= consulta.getTimeOut()){//CREO QUE ESTE IF SE PUEDE QUITAR PORQUE AL FINAL AMBOS CASOS HACEN LO MISMO
                 //VER COMO LE VAMOS A INFORMAR A ADMCLIENTES QUE SAQUE LA CONSULTAS
+                this.moduloConexion.generarSalida( consulta,tiempoSalidaSigModulo );
+                consulta.setSalioTimeOut(true);
             }else{
                 this.sigModulo.generarSalida(consulta, tiempoSalidaSigModulo);
             }
@@ -69,11 +74,6 @@ public class SubModuloEjecucion extends Modulo{
         }
         consulta.setTiempoModulo(false, 5 , tiempo - consulta.getTiempoModulo(5) );
         //VER SI NO LE FALTA ALGO MAS
-    }
-
-    public void matarTimeOut( double tiempo ){
-        //VER COMO LO PENSO ARAYA, CREO QUE ES VERIFICANDO EN GENERAR SALIDA QUE LE TIEMPO GENERADO NO SEA MAYOR QUE EL TIME OUT
-        // OJO QUE SI SE HACE TIME OUT DEBO PONER ESE TIEMPO COMO TFinalReal DE LA CONSULTA
     }
 
 }

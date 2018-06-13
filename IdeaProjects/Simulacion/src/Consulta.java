@@ -3,10 +3,12 @@ import java.util.LinkedList;
 public class Consulta implements Comparable<Consulta>{
     private double tInicial;
     private double timeOut;
+    private boolean activa;
+    private boolean salioTimeOut;
     private double tFinalReal;
     private TipoConsulta tipoConsulta;
     private int bloques;    //VER DONDE SE TIENE QUE CARGAR EL NUMERO DE BLOQUES
-    private int moduloActual; //comienza en 1, VER SI SE NECESITA, LO USO PARA VER CUAL CONSULTA VA PRIMERO QUE OTRA EN FIFO, Y CREO QUE NOS SIRVE PARA SABER DE CUAL COLA SACAR UNA CONSULTA
+    private Modulo moduloActual; //comienza en 1, VER SI SE NECESITA, LO USO PARA VER CUAL CONSULTA VA PRIMERO QUE OTRA EN FIFO, Y CREO QUE NOS SIRVE PARA SABER DE CUAL COLA SACAR UNA CONSULTA
     private LinkedList<Double> tiemposCola;//FALTA HACER LOS TIEMPOS EN COLA
     private LinkedList<Double> tiemposModulo;
     private EstadisticasSimulacion estadisticasSimulacion;
@@ -14,6 +16,8 @@ public class Consulta implements Comparable<Consulta>{
     public Consulta( double tInicial, double timeOut, TipoConsulta tipoConsulta, EstadisticasSimulacion estadisticasSimulacion){
         this.tInicial = tInicial;
         this.timeOut = timeOut;
+        this.activa = true;
+        this.salioTimeOut = false;
         this.tipoConsulta = tipoConsulta;
         this.estadisticasSimulacion = estadisticasSimulacion;
 
@@ -21,9 +25,22 @@ public class Consulta implements Comparable<Consulta>{
         this.tiemposModulo = new LinkedList<Double>();
     }
 
-    public int getModuloActual() { return moduloActual; }
+    public boolean getSalioTimeOut() { return salioTimeOut; }
 
-    public void setModuloActual(int moduloActual) { this.moduloActual = moduloActual; }
+    public void setSalioTimeOut(boolean salioTimeOut) {
+        this.salioTimeOut = salioTimeOut;
+        //this.estadisticasSimulacion.addConsultaRechazado(this);//DESCOMENTAR SOLO SI EN LAS DESCARTADAS CUENTAN LAS TIMEOUT
+    }
+
+    public boolean isActiva() { return activa; }
+
+    public void setActiva(boolean activa) { this.activa = activa; }
+
+    public Modulo getModuloActual() { return moduloActual; }
+
+    public int getNumeroModuloActual() { return moduloActual.getNumeroModulo(); }
+
+    public void setModuloActual(Modulo moduloActual) { this.moduloActual = moduloActual; }
 
     public double getTimeOut(){ return this.timeOut; }
 
@@ -76,9 +93,9 @@ public class Consulta implements Comparable<Consulta>{
     * por lo que el tiempo que esta en el vector es el tiempo de entrada en cola*/
     @Override
     public int compareTo(Consulta otro ){
-        if( this.getTiempoCola( this.getModuloActual() ) < otro.getTiempoCola( otro.getModuloActual() ) ){
+        if( this.getTiempoCola( this.getNumeroModuloActual() ) < otro.getTiempoCola( otro.getNumeroModuloActual() ) ){
             return -1;
-        }else if( this.getTiempoCola( this.getModuloActual() ) > otro.getTiempoCola( otro.getModuloActual() ) ){
+        }else if( this.getTiempoCola( this.getNumeroModuloActual() ) > otro.getTiempoCola( otro.getNumeroModuloActual() ) ){
             return 1;
         }else{
             return 0;//creo que no se da porque solo llega una consulta en un solo instante

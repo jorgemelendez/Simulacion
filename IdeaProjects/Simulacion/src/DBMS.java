@@ -45,40 +45,60 @@ public class DBMS {
         this.admProcesamiento.setSigModulo( this.admTransaccionesAlmacenamiento );
         this.admTransaccionesAlmacenamiento.setSigModulo( this.subModuloEjecucion );
         this.subModuloEjecucion.setSigModulo( this.admClientes );
+        //Hacer todas las cargas de admcliente en los otros modulos para que puedan generar la salida de timeout
+        this.admProcesos.setModuloConexion( this.admClientes );
+        this.admProcesamiento.setModuloConexion( this.admClientes );
+        this.admTransaccionesAlmacenamiento.setModuloConexion( this.admClientes );
+        this.subModuloEjecucion.setModuloConexion( this.admClientes );
 
         TipoConsulta tipoConsulta = this.generadorDeValoresAleatorios.generarValorTipoConsulta();
-        this.admClientes.generarLlegada( new Consulta( 0, t, tipoConsulta, this.estadisticasSimulacion ), 0 );
+        Consulta nuevaConsulta = new Consulta( 0, t, tipoConsulta, this.estadisticasSimulacion );
+        this.admClientes.generarLlegada( nuevaConsulta, 0 );
     }
 
     private void procesarEvento( Evento evento ){
         System.out.println( "Evento: "+ evento.getTipoEvento().name()+ "\n"+
                             "Consulta: "+evento.getConsulta().getTipoConsulta().name()+"\n"+
                             "Tiempo: "+ evento.getTiempo()+ "\n\n" );
-        if( evento.getTipoEvento() == TipoEvento.LlegadaAdmCliente ){
-            this.admClientes.procesarLlegada( evento.getConsulta(), evento.getTiempo() );
-        }else if( evento.getTipoEvento() == TipoEvento.LlegadaAdmProcesos ){
-            this.admProcesos.procesarLlegada( evento.getConsulta(), evento.getTiempo() );
-        }else if( evento.getTipoEvento() == TipoEvento.LlegadaAdmProcesamiento ){
-            this.admProcesamiento.procesarLlegada( evento.getConsulta(), evento.getTiempo() );
-        }else if( evento.getTipoEvento() == TipoEvento.LlegadaAdmTransaccionesAlmacenamiento ){
-            this.admTransaccionesAlmacenamiento.procesarLlegada( evento.getConsulta(), evento.getTiempo() );
-        }else if( evento.getTipoEvento() == TipoEvento.LlegadaSubModuloEjecucion ){
-            this.subModuloEjecucion.procesarLlegada( evento.getConsulta(), evento.getTiempo() );
-        }else if( evento.getTipoEvento() == TipoEvento.SalidaAdmCliente ){
-            this.admClientes.procesarSalida( evento.getConsulta(), evento.getTiempo() );
-        }else if( evento.getTipoEvento() == TipoEvento.SalidaAdmProcesos ){
-            this.admProcesos.procesarSalida( evento.getConsulta(), evento.getTiempo() );
-        }else if( evento.getTipoEvento() == TipoEvento.SalidaAdmProcesamiento ){
-            this.admProcesamiento.procesarSalida( evento.getConsulta(), evento.getTiempo() );
-        }else if( evento.getTipoEvento() == TipoEvento.SalidaAdmTransaccionesAlmacenamiento ){
-            this.admTransaccionesAlmacenamiento.procesarSalida( evento.getConsulta(), evento.getTiempo() );
-        }else if( evento.getTipoEvento() == TipoEvento.SalidaSubModuloEjecucion ){
-            this.subModuloEjecucion.procesarSalida( evento.getConsulta(), evento.getTiempo() );
+        switch( evento.getTipoEvento() ){
+            case LlegadaAdmCliente:
+                this.admClientes.procesarLlegada( evento.getConsulta(), evento.getTiempo() );
+                break;
+            case LlegadaAdmProcesos:
+                this.admProcesos.procesarLlegada( evento.getConsulta(), evento.getTiempo() );
+                break;
+            case LlegadaAdmProcesamiento:
+                this.admProcesamiento.procesarLlegada( evento.getConsulta(), evento.getTiempo() );
+                break;
+            case LlegadaAdmTransaccionesAlmacenamiento:
+                this.admTransaccionesAlmacenamiento.procesarLlegada( evento.getConsulta(), evento.getTiempo() );
+                break;
+            case LlegadaSubModuloEjecucion:
+                this.subModuloEjecucion.procesarLlegada( evento.getConsulta(), evento.getTiempo() );
+                break;
+            case SalidaAdmCliente:
+                this.admClientes.procesarSalida( evento.getConsulta(), evento.getTiempo() );
+                break;
+            case SalidaAdmProcesos:
+                this.admProcesos.procesarSalida( evento.getConsulta(), evento.getTiempo() );
+                break;
+            case SalidaAdmProcesamiento:
+                this.admProcesamiento.procesarSalida( evento.getConsulta(), evento.getTiempo() );
+                break;
+            case SalidaAdmTransaccionesAlmacenamiento:
+                this.admTransaccionesAlmacenamiento.procesarSalida( evento.getConsulta(), evento.getTiempo() );
+                break;
+            case SalidaSubModuloEjecucion:
+                this.subModuloEjecucion.procesarSalida( evento.getConsulta(), evento.getTiempo() );
+                break;
+            case SalidaTimeOut:
+                this.admClientes.procesarSalidaTimeOut( evento.getConsulta(), evento.getTiempo() );
+                break;
         }
     }
 
     public void ejecutarSimulacion(){
-        while( !this.listaEventos.isEmpty() && this.reloj < this.tMaxSim ) {
+        do {
             Evento nuevo = this.listaEventos.poll();
             this.reloj = nuevo.getTiempo();
             System.out.println( "Reloj: " + this.reloj + "" );
@@ -89,10 +109,7 @@ public class DBMS {
                                 "Largo cola AdmSubEjecucion: " + this.subModuloEjecucion.getLargoCola() + "" );
             System.out.println( "Conexiones descartadas: " + this.estadisticasSimulacion.getConsultasRechazadas() );
             this.procesarEvento(nuevo);
-        }
+        } while( !this.listaEventos.isEmpty() && this.listaEventos.peek().getTiempo() < this.tMaxSim/*this.reloj < this.tMaxSim*/ );
     }
 
-    private void matarTimeOut(){
-
-    }
 }

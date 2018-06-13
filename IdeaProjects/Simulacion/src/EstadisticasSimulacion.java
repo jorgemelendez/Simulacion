@@ -1,7 +1,7 @@
 import java.util.LinkedList;
 
 public class EstadisticasSimulacion {
-    private LinkedList< LinkedList<Consulta> > consultas;
+    private LinkedList< LinkedList<Consulta> > consultas;//VER SI LO CAMBIAMOS A UN OBJETO DE ESTADISTICA AFUERA
     private int consultasRechazadas;
 
     public EstadisticasSimulacion(){

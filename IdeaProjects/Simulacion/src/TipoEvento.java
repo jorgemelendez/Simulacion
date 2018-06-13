@@ -1,5 +1,5 @@
 public enum TipoEvento {
     LlegadaAdmCliente, LlegadaAdmProcesos, LlegadaAdmProcesamiento, LlegadaAdmTransaccionesAlmacenamiento,
     LlegadaSubModuloEjecucion, SalidaAdmCliente, SalidaAdmProcesos, SalidaAdmProcesamiento,
-    SalidaAdmTransaccionesAlmacenamiento, SalidaSubModuloEjecucion
+    SalidaAdmTransaccionesAlmacenamiento, SalidaSubModuloEjecucion, SalidaTimeOut
 }
